@@ -1,0 +1,22 @@
+{
+  "name": "retro-dashtop",
+  "version": "0.1.0",
+  "description": "A terminal task manager styled after an 80s digital instrument cluster.",
+  "type": "module",
+  "bin": {
+    "retro-dashtop": "./src/index.js"
+  },
+  "main": "./src/index.js",
+  "scripts": {
+    "start": "node ./src/index.js"
+  },
+  "dependencies": {
+    "ink": "^7.1.1",
+    "react": "^19.2.8",
+    "systeminformation": "^5.33.1"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
