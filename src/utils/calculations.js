@@ -87,6 +87,23 @@ export function diskRatio(fsArray) {
   return clampRatio(largest.used / largest.size);
 }
 
+// CGO: aggregate storage usage across every real filesystem, as one
+// percentage — a fleet-wide "how full is everything" glance, distinct
+// from the per-partition breakdown in the Cargo Bays panel.
+export function aggregateDiskRatio(fsArray) {
+  if (!fsArray || fsArray.length === 0) return 0;
+  const totals = fsArray.reduce(
+    (acc, fs) => {
+      acc.used += fs.used || 0;
+      acc.size += fs.size || 0;
+      return acc;
+    },
+    { used: 0, size: 0 }
+  );
+  if (!totals.size) return 0;
+  return clampRatio(totals.used / totals.size);
+}
+
 /**
  * Stateful tracker for network throughput.
  * Because network speeds have no fixed "100%" ceiling, this class tracks a 

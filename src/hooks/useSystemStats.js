@@ -7,6 +7,7 @@ import {
   batteryRatio,
   tempRatio,
   diskRatio,
+  aggregateDiskRatio,
   NetworkPressureTracker,
 } from "../utils/calculations.js";
 
@@ -23,6 +24,7 @@ const initialState = {
   tempRatio: null,
   tempCelsius: null,
   diskRatio: 0,
+  cgoRatio: 0,
   netRatio: 0,
   netRawBytesPerSec: 0,
   netHistory: [],
@@ -98,6 +100,7 @@ export function useSystemStats() {
             battRatio: batteryRatio(batt),
             isCharging: !!batt.isCharging,
             diskRatio: diskRatio(disks),
+            cgoRatio: aggregateDiskRatio(disks),
           }));
         }
       } finally {

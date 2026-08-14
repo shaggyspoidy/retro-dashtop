@@ -4,6 +4,8 @@
  * Zero live data or I/O is handled here.
  */
 
+import { theme } from "./theme.js"
+
 /**
  * Renders an LED segmented bar-graph, mimicking 80s digital dashboard load displays.
  * Returns an array of characters rather than a string so the UI layer can map 
@@ -13,6 +15,7 @@
  * @param {number} [segments=20] - The total number of LED segments in the bar.
  * @returns {{ chars: string[], litCount: number }} An array of lit/unlit characters and the count of lit segments.
  */
+
 export function ledSegments(ratio, segments = 20) {
   const clamped = Math.min(1, Math.max(0, ratio));
   const lit = Math.round(clamped * segments);
@@ -21,6 +24,67 @@ export function ledSegments(ratio, segments = 20) {
     chars.push(i < lit ? "█" : "░");
   }
   return { chars, litCount: lit };
+}
+
+/**
+ * Computes lit/unlit state for a vertical stack of segments, like a
+ * fuel gauge or oil-pressure cell stack. Fills from the bottom up as
+ * ratio increases, matching how a real gauge behaves.
+ *
+ * @param {number} ratio - The normalized metric ratio (0.0 to 1.0).
+ * @param {number} [segmentCount=8] - Total number of stacked segments.
+ * @returns {boolean[]} Lit state per row, index 0 = topmost segment.
+ */
+export function verticalSegments(ratio, segmentCount = 8) {
+  const clamped = Math.min(1, Math.max(0, ratio));
+  const lit = Math.round(clamped * segmentCount);
+  const rows = [];
+  for (let i = 0; i < segmentCount; i++) {
+    const segmentIndexFromBottom = segmentCount - 1 - i;
+    rows.push(segmentIndexFromBottom < lit);
+  }
+  return rows;
+}
+
+/**
+ * Converts a hex color string to its RGB components.
+ * @param {string} hex
+ * @returns {{ r: number, g: number, b: number }}
+ */
+function hexToRgb(hex) {
+  const n = parseInt(hex.replace("#", ""), 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+/**
+ * Linearly interpolates between two hex colors.
+ * @param {string} hexA
+ * @param {string} hexB
+ * @param {number} t - 0 = hexA, 1 = hexB
+ * @returns {string} hex color
+ */
+function lerpColor(hexA, hexB, t) {
+  const a = hexToRgb(hexA);
+  const b = hexToRgb(hexB);
+  const lerp = (x, y) => Math.round(x + (y - x) * t);
+  const toHex = (n) => n.toString(16).padStart(2, "0");
+  return `#${toHex(lerp(a.r, b.r))}${toHex(lerp(a.g, b.g))}${toHex(lerp(a.b, b.b))}`;
+}
+
+/**
+ * Maps a 0..1 position to a color along the green -> amber -> red
+ * VFD gradient, for per-segment zone coloring on stacked gauges.
+ * Stays entirely within the SRS-approved phosphor palette — this is
+ * a blend between existing theme colors, not new hues.
+ * @param {number} t - 0 = green end, 1 = red end
+ * @returns {string} hex color
+ */
+export function gradientColor(t) {
+  const clamped = Math.min(1, Math.max(0, t));
+  if (clamped < 0.5) {
+    return lerpColor(theme.green, theme.amber, clamped / 0.5);
+  }
+  return lerpColor(theme.amber, theme.red, (clamped - 0.5) / 0.5);
 }
 
 /**
@@ -73,7 +137,7 @@ export function trackPosition(ratio, width) {
  * @returns {string} The corresponding hex color code (Green, Amber, or Red).
  */
 export function colorForLoad(ratio) {
-  if (ratio >= 0.9) return "#FF3B30"; // redline
-  if (ratio >= 0.7) return "#FF9500"; // amber warning
-  return "#00FF9C"; // nominal green
+  if (ratio >= 0.9) return theme.red;
+  if (ratio >= 0.7) return theme.amber;
+  return theme.green;
 }

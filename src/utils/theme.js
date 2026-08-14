@@ -1,15 +1,11 @@
-/**
- * @fileoverview Centralized color theme for RetroDash.
- * Keeps all UI components visually consistent and provides a 
- * single source of truth for standard hex codes.
- */
-
+// VFD phosphor palette per SRS 5.2: bright green, warning yellow,
+// red, amber/orange only. No cool colors — cyan is gone entirely.
 export const theme = {
-  panelBorder: "#00D9FF", // Cyberpunk cyan for main layout borders
-  amber: "#FF9500",       // Warning states (70%+ load)
-  green: "#00FF9C",       // Nominal states (0-69% load)
-  red: "#FF3B30",         // Critical/Redline states (90%+ load)
-  cyan: "#00D9FF",        // Accents and active elements
-  textPrimary: "#E8F6FF", // Bright icy white for main metric readouts
-  textDim: "#5C7A82",     // Muted teal-grey for background labels and tracks
+  green: "#00FF66",
+  yellow: "#FFD400",
+  amber: "#FF9500",
+  red: "#FF3B30",
+  textPrimary: "#CFFFE0",
+  textDim: "#3A6B4A",
+  panelBorder: "#2A6E45", // Section 2 panels only — never Section 1
 };

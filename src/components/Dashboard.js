@@ -1,9 +1,8 @@
 import { Box } from "ink";
 import { h } from "../utils/h.js";
-import { theme } from "../utils/theme.js";
 import { Powerband } from "./Powerband.js";
 import { FuelGauge } from "./FuelGauge.js";
-import { TempSlider } from "./TempSlider.js";
+import { GaugeReadout } from "./GaugeReadout.js";
 import { NetworkTrace } from "./NetworkTrace.js";
 
 function fmtRate(bytesPerSec) {
@@ -13,40 +12,56 @@ function fmtRate(bytesPerSec) {
 }
 
 export function Dashboard({ stats, width, height }) {
-  const interiorW = Math.max(24, width - 2);
-  const interiorH = Math.max(8, height - 2);
+  const interiorW = Math.max(24, width - 2); // paddingX: 1 on both sides
+  const interiorH = Math.max(8, height);
 
   const netRows = Math.max(2, Math.min(6, interiorH - 4));
   const gaugeRowHeight = Math.max(3, interiorH - netRows - 1);
-
   const panelWidth = Math.max(10, Math.floor((interiorW - 3) / 4));
+  const arcHeight = Math.max(4, gaugeRowHeight - 2); // minus label row + sublabel row
+  const clusterItemWidth = Math.max(6, Math.floor((panelWidth - 2) / 3));
 
   return h(
     Box,
-    {
-      flexDirection: "column",
-      width,
-      height,
-      borderStyle: "round",
-      borderColor: theme.panelBorder,
-      paddingX: 1,
-    },
+    { flexDirection: "column", width, height, paddingX: 1 },
     h(
       Box,
       { height: gaugeRowHeight },
-      h(Powerband, { label: "CPU", value: stats.cpuRatio, width: panelWidth, subLabel: "load avg" }),
+      h(Powerband, { label: "CPU", value: stats.cpuRatio, width: panelWidth, height: arcHeight, subLabel: "load avg" }),
       h(Box, { width: 1 }),
       h(Powerband, {
         label: "GPU",
         value: stats.gpuRatio ?? 0,
         width: panelWidth,
+        height: arcHeight,
         unavailable: stats.gpuRatio === null,
         subLabel: "no sensor",
       }),
       h(Box, { width: 1 }),
       h(FuelGauge, { value: stats.battRatio, charging: stats.isCharging, width: panelWidth }),
       h(Box, { width: 1 }),
-      h(TempSlider, { ratio: stats.tempRatio, celsius: stats.tempCelsius, width: panelWidth })
+      h(
+        Box,
+        { width: panelWidth, justifyContent: "space-between" },
+        h(GaugeReadout, {
+          label: "TEMP",
+          ratio: stats.tempRatio,
+          valueLabel: stats.tempCelsius !== null ? `${Math.round(stats.tempCelsius)}\u00B0C` : "N/A",
+          width: clusterItemWidth,
+        }),
+        h(GaugeReadout, {
+          label: "OIL",
+          ratio: stats.memRatio,
+          valueLabel: `${Math.round(stats.memRatio * 100)}%`,
+          width: clusterItemWidth,
+        }),
+        h(GaugeReadout, {
+          label: "CGO",
+          ratio: stats.cgoRatio,
+          valueLabel: `${Math.round(stats.cgoRatio * 100)}%`,
+          width: clusterItemWidth,
+        })
+      )
     ),
     h(NetworkTrace, {
       history: stats.netHistory,

@@ -7,7 +7,7 @@
  * can be strictly isolated to the rendering logic.
  */
 
-import { ledSegments, smoothBar, trackPosition, colorForLoad } from "../src/utils/gauge.js";
+import { ledSegments, smoothBar, trackPosition, colorForLoad, verticalSegments } from "../src/utils/gauge.js";
 import { BrailleCanvas } from "../src/utils/braille.js";
 
 function ansi(hex, str) {
@@ -34,6 +34,12 @@ console.log("\n--- trackPosition ---");
 // Test the slider position at absolute minimum, exact center, and absolute maximum
 for (const r of [0, 0.5, 1]) {
   console.log(`${r.toFixed(2)}  ${trackPosition(r, 24)}`);
+}
+
+console.log("\n--- verticalSegments ---");
+for (const r of [0, 0.25, 0.5, 0.75, 1]) {
+  const stack = verticalSegments(r, 4).map(isLit => isLit ? "█" : "░").join("");
+  console.log(`${r.toFixed(2)}  ${stack} (top to bottom)`);
 }
 
 console.log("\n--- BrailleCanvas (sine wave, hardcoded, no live data) ---");

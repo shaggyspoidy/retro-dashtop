@@ -11,10 +11,12 @@ import { h } from "./utils/h.js";
 import { theme } from "./utils/theme.js";
 import { Dashboard } from "./components/Dashboard.js";
 import { ProcessManager } from "./components/ProcessManager.js";
+import { useSystemStats } from "./hooks/useSystemStats.js";
 
 export function App() {
   const { exit } = useApp();
   const { width, height } = useTerminalSize();
+  const stats = useSystemStats();
 
   // Global keybindings: quit cleanly on 'q' or 'Ctrl+C'
   useInput((input, key) => {
@@ -44,7 +46,7 @@ export function App() {
     ),
     
     // --- 30% DASHBOARD ---
-    h(Dashboard, { width: termWidth, height: dashboardHeight }),
+    h(Dashboard, {stats, width: termWidth, height: dashboardHeight }),
     
     // --- 70% PROCESS MANAGER ---
     h(ProcessManager, { width: termWidth, height: processHeight })
