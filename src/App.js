@@ -10,6 +10,7 @@ import { useTerminalSize } from "./hooks/useTerminalSize.js";
 import { h } from "./utils/h.js";
 import { theme } from "./utils/theme.js";
 import { Dashboard } from "./components/Dashboard.js";
+import { Mechanics } from "./components/Mechanics.js";
 import { ProcessManager } from "./components/ProcessManager.js";
 import { useSystemStats } from "./hooks/useSystemStats.js";
 import { FUEL_PANEL_ROWS } from "./components/FuelGauge.js";
@@ -34,6 +35,11 @@ export function App() {
   const dashboardHeight = Math.max(FUEL_PANEL_ROWS + 7, Math.round(bodyHeight * 0.3));
   const processHeight = Math.max(6, bodyHeight - dashboardHeight);
 
+  // Section 2 left/right split — Mechanics (Cargo Bays + Telemetry)
+  // gets ~40% width, ProcessManager gets the rest.
+  const mechanicsWidth = Math.max(20, Math.floor(termWidth * 0.4));
+  const processWidth = Math.max(20, termWidth - mechanicsWidth - 1);
+
   return h(
     Box,
     { flexDirection: "column", width: termWidth, height: termHeight },
@@ -49,7 +55,13 @@ export function App() {
     // --- 30% DASHBOARD ---
     h(Dashboard, {stats, width: termWidth, height: dashboardHeight }),
     
-    // --- 70% PROCESS MANAGER ---
-    h(ProcessManager, { width: termWidth, height: processHeight })
+    // --- 70% MECHANICS (left) + PROCESS MANAGER (right) ---
+    h(
+      Box,
+      { flexDirection: "row", height: processHeight },
+      h(Mechanics, { width: mechanicsWidth, height: processHeight }),
+      h(Box, { width: 1 }),
+      h(ProcessManager, { width: processWidth, height: processHeight })
+    )
   );
 }
