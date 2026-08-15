@@ -134,3 +134,46 @@ export class NetworkPressureTracker {
     };
   }
 }
+
+/**
+ * Formats a duration in minutes as "HHh MMm". Returns null for
+ * unknown/negative input (e.g. battery still calculating estimate).
+ */
+export function formatDuration(minutes) {
+  if (minutes === null || minutes === undefined || minutes < 0 || Number.isNaN(minutes)) {
+    return null;
+  }
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  return `${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m`;
+}
+
+/**
+ * TRIP per SRS 4.1.1: remaining battery time while discharging,
+ * system uptime while charging (or no battery at all).
+ */
+export function tripReadout({ isCharging, hasBattery, timeRemainingMinutes, uptimeSeconds }) {
+  if (hasBattery && !isCharging) {
+    const formatted = formatDuration(timeRemainingMinutes);
+    return formatted ? `TRIP ${formatted}` : "TRIP --h --m";
+  }
+  const formatted = formatDuration(Math.floor((uptimeSeconds || 0) / 60));
+  return formatted ? `TRIP ${formatted}` : "TRIP --h --m";
+}
+
+/**
+ * Days since a given Date, or null if it looks like an unsupported
+ * birthtime (epoch 0) or bogus (in the future / clock skew).
+ */
+export function daysSince(date) {
+  if (!date) return null;
+  const ms = date.getTime();
+  if (!ms || ms <= 0) return null;
+  const now = Date.now();
+  if (ms > now) return null;
+  return Math.floor((now - ms) / (1000 * 60 * 60 * 24));
+}
+
+export function odoReadout(days) {
+  return days === null ? "ODO --d" : `ODO ${days}d`;
+}

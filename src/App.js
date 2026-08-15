@@ -12,6 +12,7 @@ import { theme } from "./utils/theme.js";
 import { Dashboard } from "./components/Dashboard.js";
 import { ProcessManager } from "./components/ProcessManager.js";
 import { useSystemStats } from "./hooks/useSystemStats.js";
+import { FUEL_PANEL_ROWS } from "./components/FuelGauge.js";
 
 export function App() {
   const { exit } = useApp();
@@ -30,7 +31,7 @@ export function App() {
   // Layout Math: 1 row for header, 30% for dashboard (min 10), rest for processes (min 6)
   const headerRows = 1;
   const bodyHeight = termHeight - headerRows;
-  const dashboardHeight = Math.max(10, Math.round(bodyHeight * 0.3));
+  const dashboardHeight = Math.max(FUEL_PANEL_ROWS + 7, Math.round(bodyHeight * 0.3));
   const processHeight = Math.max(6, bodyHeight - dashboardHeight);
 
   return h(

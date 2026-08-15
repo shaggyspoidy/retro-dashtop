@@ -1,4 +1,6 @@
+import fs from "node:fs";
 import { useEffect, useRef, useState } from "react";
+import os from "node:os";
 import si from "systeminformation";
 import {
   cpuLoadRatio,
@@ -9,6 +11,7 @@ import {
   diskRatio,
   aggregateDiskRatio,
   NetworkPressureTracker,
+  daysSince,
 } from "../utils/calculations.js";
 
 const FAST_POLL_MS = 1000;
@@ -20,6 +23,8 @@ const initialState = {
   gpuRatio: null,
   memRatio: 0,
   battRatio: null,
+  battTimeRemainingMinutes: null,
+  uptimeSeconds: 0,
   isCharging: false,
   tempRatio: null,
   tempCelsius: null,
@@ -30,6 +35,7 @@ const initialState = {
   netHistory: [],
   processes: [],
   ready: false,
+  odoDays: null,
 };
 
 export function useSystemStats() {
@@ -42,6 +48,15 @@ export function useSystemStats() {
 
   useEffect(() => {
     mounted.current = true;
+
+    // ODO: OS install age from the root partition's birthtime.
+    // Computed once — doesn't change during a session.
+    try {
+      const odoDays = daysSince(fs.statSync("/").birthtime);
+      if (mounted.current) setStats((prev) => ({ ...prev, odoDays }));
+    } catch {
+      // leave odoDays as null
+    }
 
     async function pollFast() {
       if (busyFast.current || !mounted.current) return;
@@ -98,6 +113,8 @@ export function useSystemStats() {
             ...prev,
             processes: procs.list || [],
             battRatio: batteryRatio(batt),
+            battTimeRemainingMinutes: batt.timeRemaining ?? null,
+            uptimeSeconds: os.uptime(),
             isCharging: !!batt.isCharging,
             diskRatio: diskRatio(disks),
             cgoRatio: aggregateDiskRatio(disks),

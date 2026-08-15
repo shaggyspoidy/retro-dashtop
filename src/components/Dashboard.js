@@ -1,7 +1,7 @@
 import { Box } from "ink";
 import { h } from "../utils/h.js";
 import { Powerband } from "./Powerband.js";
-import { FuelGauge } from "./FuelGauge.js";
+import { FuelGauge, FUEL_PANEL_ROWS } from "./FuelGauge.js";
 import { GaugeReadout } from "./GaugeReadout.js";
 import { NetworkTrace } from "./NetworkTrace.js";
 
@@ -16,7 +16,7 @@ export function Dashboard({ stats, width, height }) {
   const interiorH = Math.max(8, height);
 
   const netRows = Math.max(2, Math.min(6, interiorH - 4));
-  const gaugeRowHeight = Math.max(3, interiorH - netRows - 1);
+  const gaugeRowHeight = Math.max(FUEL_PANEL_ROWS, interiorH - netRows - 1);
   const panelWidth = Math.max(10, Math.floor((interiorW - 3) / 4));
   const arcHeight = Math.max(4, gaugeRowHeight - 2); // minus label row + sublabel row
   const clusterItemWidth = Math.max(6, Math.floor((panelWidth - 2) / 3));
@@ -38,7 +38,14 @@ export function Dashboard({ stats, width, height }) {
         subLabel: "no sensor",
       }),
       h(Box, { width: 1 }),
-      h(FuelGauge, { value: stats.battRatio, charging: stats.isCharging, width: panelWidth }),
+      h(FuelGauge, {
+        value: stats.battRatio,
+        charging: stats.isCharging,
+        battTimeRemainingMinutes: stats.battTimeRemainingMinutes,
+        uptimeSeconds: stats.uptimeSeconds,
+        width: panelWidth,
+        odoDays: stats.odoDays,
+      }),
       h(Box, { width: 1 }),
       h(
         Box,
