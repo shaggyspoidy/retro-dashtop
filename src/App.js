@@ -32,7 +32,7 @@ export function App() {
   // Layout Math: 1 row for header, 30% for dashboard (min 10), rest for processes (min 6)
   const headerRows = 1;
   const bodyHeight = termHeight - headerRows;
-  const dashboardHeight = Math.max(FUEL_PANEL_ROWS + 7, Math.round(bodyHeight * 0.3));
+  const dashboardHeight = Math.max(FUEL_PANEL_ROWS, Math.round(bodyHeight * 0.3));
   const processHeight = Math.max(6, bodyHeight - dashboardHeight);
 
   // Section 2 left/right split — Mechanics (Cargo Bays + Telemetry)
@@ -47,8 +47,7 @@ export function App() {
     // --- TOP HEADER ---
     h(
       Box,
-      { height: headerRows, justifyContent: "space-between" },
-      h(Text, { bold: true, color: theme.amber }, "◈ RETRO-DASHTOP ◈"),
+      { height: headerRows, justifyContent: "flex-end" },
       h(Text, { color: theme.textDim }, "q to quit")
     ),
     
@@ -59,9 +58,9 @@ export function App() {
     h(
       Box,
       { flexDirection: "row", height: processHeight },
-      h(Mechanics, { width: mechanicsWidth, height: processHeight }),
+      h(Mechanics, {stats, width: mechanicsWidth, height: processHeight }),
       h(Box, { width: 1 }),
-      h(ProcessManager, { width: processWidth, height: processHeight })
+      h(ProcessManager, { processes: stats.processes, width: processWidth, height: processHeight })
     )
   );
 }

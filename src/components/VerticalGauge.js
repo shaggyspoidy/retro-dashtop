@@ -23,14 +23,15 @@ export function gaugeVisualRows(segmentCount = DEFAULT_SEGMENT_COUNT) {
  * than the visible row count as a result — e.g. 24 segments only
  * needs 12 terminal rows.
  */
-export function VerticalGauge({ ratio, segmentCount = DEFAULT_SEGMENT_COUNT, cellWidth = 4 }) {
-  const rows = verticalSegments(ratio ?? 0, segmentCount); // index 0 = topmost
+export function VerticalGauge({ ratio, segmentCount = DEFAULT_SEGMENT_COUNT, cellWidth = 4, invert = false }) {
+  const rows = verticalSegments(ratio ?? 0, segmentCount);
   const rowPairs = Math.ceil(segmentCount / 2);
-  const glyph = "\u2580".repeat(cellWidth); // ▀ upper half block
+  const glyph = "\u2580".repeat(cellWidth);
 
   const colorFor = (idx, lit) => {
     if (!lit) return theme.textDim;
-    const t = segmentCount === 1 ? 0 : idx / (segmentCount - 1);
+    let t = segmentCount === 1 ? 0 : idx / (segmentCount - 1);
+    if (invert) t = 1 - t;
     return gradientColor(t);
   };
 

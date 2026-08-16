@@ -34,14 +34,18 @@ export function FuelGauge({ value, charging, battTimeRemainingMinutes, uptimeSec
     { flexDirection: "column", justifyContent: "space-between", marginRight: 1 },
     // The simple green FUEL label
     h(Text, { bold: true, color: theme.green }, "FUEL"),
-    h(ChargingIndicator, { charging }),
-    
+
     h(
       Box,
       { flexDirection: "row", marginTop: 1 },
       h(
         Box,
-        { flexDirection: "column", justifyContent: "space-between", height: 14, marginRight: 1 },
+        { flexDirection: "column", alignItems: "center", justifyContent: "center", marginRight: 1 },
+        h(ChargingIndicator, { charging })
+      ),
+      h(
+        Box,
+        { flexDirection: "column", justifyContent: "space-between", marginRight: 1 },
         h(Text, { color: theme.textDim }, "F"),
         h(Text, { color: theme.textDim }, "\u00BD"), // 1/2 symbol
         h(Text, { color: theme.textDim }, "E")

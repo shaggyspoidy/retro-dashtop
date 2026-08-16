@@ -3,23 +3,21 @@ import { h } from "../utils/h.js";
 import { Powerband } from "./Powerband.js";
 import { FuelGauge, FUEL_PANEL_ROWS } from "./FuelGauge.js";
 import { GaugeReadout } from "./GaugeReadout.js";
-import { NetworkTrace } from "./NetworkTrace.js";
-
-function fmtRate(bytesPerSec) {
-  if (bytesPerSec >= 1024 * 1024) return `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`;
-  if (bytesPerSec >= 1024) return `${(bytesPerSec / 1024).toFixed(1)} KB/s`;
-  return `${Math.round(bytesPerSec)} B/s`;
-}
 
 export function Dashboard({ stats, width, height }) {
   const interiorW = Math.max(24, width - 2); // paddingX: 1 on both sides
   const interiorH = Math.max(8, height);
-
-  const netRows = Math.max(2, Math.min(6, interiorH - 4));
-  const gaugeRowHeight = Math.max(FUEL_PANEL_ROWS, interiorH - netRows - 1);
-  const panelWidth = Math.max(10, Math.floor((interiorW - 3) / 4));
+  const gaugeRowHeight = FUEL_PANEL_ROWS; // real content height — don't stretch to fill available space
   const arcHeight = Math.max(4, gaugeRowHeight - 2); // minus label row + sublabel row
-  const clusterItemWidth = Math.max(6, Math.floor((panelWidth - 2) / 3));
+
+  // Weighted split instead of an even 4-way: CPU/GPU arcs read better
+  // with more horizontal room than FUEL or the TEMP/OIL/CGO cluster.
+  const gap = 3; // 1 char between each of the 4 panels
+  const unit = Math.max(6, Math.floor((interiorW - gap) / 5));
+  const fuelWidth = unit;
+  const arcWidth = Math.floor(unit * 3);
+  const clusterWidth = interiorW - gap - fuelWidth - arcWidth;
+  const clusterItemWidth = Math.max(6, Math.floor((clusterWidth - 2) / 3));
 
   return h(
     Box,
@@ -27,29 +25,20 @@ export function Dashboard({ stats, width, height }) {
     h(
       Box,
       { height: gaugeRowHeight },
-      h(Powerband, { label: "CPU", value: stats.cpuRatio, width: panelWidth, height: arcHeight, subLabel: "load avg" }),
-      h(Box, { width: 1 }),
-      h(Powerband, {
-        label: "GPU",
-        value: stats.gpuRatio ?? 0,
-        width: panelWidth,
-        height: arcHeight,
-        unavailable: stats.gpuRatio === null,
-        subLabel: "no sensor",
-      }),
-      h(Box, { width: 1 }),
       h(FuelGauge, {
         value: stats.battRatio,
         charging: stats.isCharging,
         battTimeRemainingMinutes: stats.battTimeRemainingMinutes,
         uptimeSeconds: stats.uptimeSeconds,
-        width: panelWidth,
+        width: fuelWidth,
         odoDays: stats.odoDays,
       }),
       h(Box, { width: 1 }),
+      h(Powerband, { label: "CPU", value: stats.cpuRatio, width: arcWidth, height: arcHeight, subLabel: "load avg" }),
+      h(Box, { flexGrow: 1 }),
       h(
         Box,
-        { width: panelWidth, justifyContent: "space-between" },
+        { width: clusterWidth, justifyContent: "space-between" },
         h(GaugeReadout, {
           label: "TEMP",
           ratio: stats.tempRatio,
@@ -69,12 +58,6 @@ export function Dashboard({ stats, width, height }) {
           width: clusterItemWidth,
         })
       )
-    ),
-    h(NetworkTrace, {
-      history: stats.netHistory,
-      rawLabel: fmtRate(stats.netRawBytesPerSec),
-      width: interiorW,
-      height: netRows,
-    })
+    )
   );
 }

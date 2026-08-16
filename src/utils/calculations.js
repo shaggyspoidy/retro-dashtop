@@ -177,3 +177,36 @@ export function daysSince(date) {
 export function odoReadout(days) {
   return days === null ? "ODO --d" : `ODO ${days}d`;
 }
+
+/**
+ * Per-partition breakdown for Cargo Bays. Filters to real physical
+ * mounts (skips virtual/pseudo filesystems that clutter si.fsSize()
+ * output on Linux, like tmpfs/overlay), sorted largest-first.
+ */
+export function diskBreakdown(fsArray) {
+  if (!fsArray) return [];
+  const REAL_FS = new Set(["ext4", "ext3", "ext2", "btrfs", "xfs", "vfat", "ntfs", "f2fs", "zfs"]);
+  return fsArray
+    .filter((fs) => REAL_FS.has((fs.type || "").toLowerCase()) && fs.size > 0)
+    .map((fs) => ({
+      mount: fs.mount,
+      ratio: clampRatio(fs.used / fs.size),
+      usedGiB: fs.used / 1024 ** 3,
+      sizeGiB: fs.size / 1024 ** 3,
+    }))
+    .sort((a, b) => b.sizeGiB - a.sizeGiB);
+}
+
+export function formatRate(bytesPerSec) {
+  if (bytesPerSec >= 1024 * 1024) return `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`;
+  if (bytesPerSec >= 1024) return `${(bytesPerSec / 1024).toFixed(1)} KB/s`;
+  return `${Math.round(bytesPerSec)} B/s`;
+}
+
+export function formatBytesTotal(bytes) {
+  const b = Math.max(0, bytes || 0);
+  if (b >= 1024 ** 3) return `${(b / 1024 ** 3).toFixed(2)} GiB`;
+  if (b >= 1024 ** 2) return `${(b / 1024 ** 2).toFixed(1)} MiB`;
+  if (b >= 1024) return `${(b / 1024).toFixed(1)} KiB`;
+  return `${Math.round(b)} B`;
+}

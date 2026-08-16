@@ -12,6 +12,8 @@ import {
   aggregateDiskRatio,
   NetworkPressureTracker,
   daysSince,
+  diskBreakdown,
+  formatRate,
 } from "../utils/calculations.js";
 
 const FAST_POLL_MS = 1000;
@@ -36,6 +38,17 @@ const initialState = {
   processes: [],
   ready: false,
   odoDays: null,
+  disks: [],
+  uploadRatio: 0,
+  downloadRatio: 0,
+  uploadRateBytesPerSec: 0,
+  downloadRateBytesPerSec: 0,
+  uploadHistory: [],
+  downloadHistory: [],
+  uploadTotalBytes: 0,
+  downloadTotalBytes: 0,
+  uploadPeakBytesPerSec: 0,
+  downloadPeakBytesPerSec: 0,
 };
 
 export function useSystemStats() {
@@ -45,6 +58,13 @@ export function useSystemStats() {
   const busyFast = useRef(false);
   const busySlow = useRef(false);
   const mounted = useRef(true);
+  const uploadTracker = useRef(new NetworkPressureTracker());
+  const downloadTracker = useRef(new NetworkPressureTracker());
+  const uploadHistoryRef = useRef([]);
+  const downloadHistoryRef = useRef([]);
+  const netBaselineRef = useRef(null);
+  const uploadPeakRef = useRef(0);
+  const downloadPeakRef = useRef(0);
 
   useEffect(() => {
     mounted.current = true;
@@ -70,6 +90,26 @@ export function useSystemStats() {
           si.networkStats(),
         ]);
 
+        const rxSec = (net || []).reduce((sum, i) => sum + (i.rx_sec || 0), 0);
+        const txSec = (net || []).reduce((sum, i) => sum + (i.tx_sec || 0), 0);
+        const rxBytesCum = (net || []).reduce((sum, i) => sum + (i.rx_bytes || 0), 0);
+        const txBytesCum = (net || []).reduce((sum, i) => sum + (i.tx_bytes || 0), 0);
+
+        if (netBaselineRef.current === null) {
+          netBaselineRef.current = { rx: rxBytesCum, tx: txBytesCum };
+        }
+        const downloadTotalBytes = Math.max(0, rxBytesCum - netBaselineRef.current.rx);
+        const uploadTotalBytes = Math.max(0, txBytesCum - netBaselineRef.current.tx);
+
+        const { ratio: uploadRatio, raw: uploadRateBytesPerSec } = uploadTracker.current.sample(txSec);
+        const { ratio: downloadRatio, raw: downloadRateBytesPerSec } = downloadTracker.current.sample(rxSec);
+
+        uploadPeakRef.current = Math.max(uploadPeakRef.current, uploadRateBytesPerSec);
+        downloadPeakRef.current = Math.max(downloadPeakRef.current, downloadRateBytesPerSec);
+
+        uploadHistoryRef.current = [...uploadHistoryRef.current, uploadRatio].slice(-NET_HISTORY_LEN);
+        downloadHistoryRef.current = [...downloadHistoryRef.current, downloadRatio].slice(-NET_HISTORY_LEN);
+
         const totalBytesPerSec = (net || []).reduce(
           (sum, iface) => sum + (iface.rx_sec || 0) + (iface.tx_sec || 0),
           0
@@ -91,6 +131,16 @@ export function useSystemStats() {
             netRawBytesPerSec,
             netHistory: netHistoryRef.current,
             ready: true,
+            uploadRatio,
+            downloadRatio,
+            uploadRateBytesPerSec,
+            downloadRateBytesPerSec,
+            uploadHistory: uploadHistoryRef.current,
+            downloadHistory: downloadHistoryRef.current,
+            uploadTotalBytes,
+            downloadTotalBytes,
+            uploadPeakBytesPerSec: uploadPeakRef.current,
+            downloadPeakBytesPerSec: downloadPeakRef.current,
           }));
         }
       } finally {
@@ -111,13 +161,20 @@ export function useSystemStats() {
         if (mounted.current) {
           setStats((prev) => ({
             ...prev,
-            processes: procs.list || [],
+            processes: (procs.list || []).map((p) => ({
+              pid: p.pid,
+              user: p.user || "?",
+              pmem: p.mem || 0,
+              pcpu: p.cpu || 0,
+              command: p.command || p.name || "?",
+            })),
             battRatio: batteryRatio(batt),
             battTimeRemainingMinutes: batt.timeRemaining ?? null,
             uptimeSeconds: os.uptime(),
             isCharging: !!batt.isCharging,
             diskRatio: diskRatio(disks),
             cgoRatio: aggregateDiskRatio(disks),
+            disks: diskBreakdown(disks),
           }));
         }
       } finally {

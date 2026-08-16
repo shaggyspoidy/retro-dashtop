@@ -17,6 +17,6 @@ export function GaugeReadout({ label, ratio, valueLabel, width = 8 }) {
     { flexDirection: "column", width, alignItems: "center" },
     h(Text, { bold: true, color: theme.green }, label),
     h(Text, { bold: true, color: theme.textPrimary }, known ? valueLabel : "N/A"),
-    h(VerticalGauge, { ratio: r, cellWidth: Math.max(2, width - 2) })
+    h(VerticalGauge, { ratio: r, cellWidth: Math.max(2, width - 2), invert: true })
   );
 }
