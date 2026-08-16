@@ -4,9 +4,9 @@
 export const COLUMNS = [
   { key: "pid", label: "PID", width: 8, align: "right", hotkey: "p" },
   { key: "user", label: "USER", width: 10, align: "left", hotkey: "u" },
+  { key: "command", label: "COMMAND", width: null, align: "left", hotkey: "n" }, // takes remaining width
   { key: "pmem", label: "MEM%", width: 6, align: "right", hotkey: "m" },
   { key: "pcpu", label: "CPU%", width: 6, align: "right", hotkey: "c" },
-  { key: "command", label: "COMMAND", width: null, align: "left", hotkey: "n" }, // takes remaining width
 ];
 
 /**
