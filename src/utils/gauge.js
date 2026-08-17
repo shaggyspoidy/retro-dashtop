@@ -141,3 +141,29 @@ export function colorForLoad(ratio) {
   if (ratio >= 0.7) return theme.amber;
   return theme.green;
 }
+
+/**
+ * Hard-cutoff zone color (no blending) — green/amber/red snap
+ * distinctly at fixed thresholds, unlike gradientColor's smooth lerp.
+ */
+export function zoneColor(t) {
+  if (t >= 0.85) return theme.red;
+  if (t >= 0.6) return theme.amber;
+  return theme.green;
+}
+
+/**
+ * A vertical scale track: mostly "│" with a single marker row
+ * showing the current position, like an analog gauge needle —
+ * distinct from verticalSegments' filled-from-bottom LED style.
+ * Row 0 = top of the track (highest value end).
+ */
+export function verticalTrackPosition(ratio, height) {
+  const clamped = Math.min(1, Math.max(0, ratio));
+  const markerRow = Math.round((1 - clamped) * (height - 1));
+  const rows = [];
+  for (let i = 0; i < height; i++) {
+    rows.push(i === markerRow ? "marker" : "track");
+  }
+  return rows;
+}

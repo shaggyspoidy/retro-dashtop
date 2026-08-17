@@ -1,51 +1,33 @@
 import { Box, Text } from "ink";
 import { h } from "../utils/h.js";
 import { theme } from "../utils/theme.js";
-import { verticalSegments, gradientColor } from "../utils/gauge.js";
+import { verticalSegments, zoneColor } from "../utils/gauge.js";
 
-export const DEFAULT_SEGMENT_COUNT = 24;
+export const DEFAULT_SEGMENT_COUNT = 12;
 
-/**
- * Terminal rows a VerticalGauge actually renders for a given
- * segmentCount — each row packs 2 segments via the half-block
- * double-resolution trick, so it's Math.ceil(segmentCount / 2).
- * Other components should call this instead of hardcoding a number
- * that has to be kept in sync by hand.
- */
+// One row per segment now (was 2-per-row via half-block blending) —
+// the visible gap this trades away is exactly the point this time.
 export function gaugeVisualRows(segmentCount = DEFAULT_SEGMENT_COUNT) {
-  return Math.ceil(segmentCount / 2);
+  return segmentCount;
 }
 
 /**
- * A vertical stacked-segment gauge, double-resolution: each physical
- * terminal row renders TWO segments by coloring a half-block glyph's
- * foreground and background separately. segmentCount defaults higher
- * than the visible row count as a result — e.g. 24 segments only
- * needs 12 terminal rows.
+ * Chunky LED-style vertical gauge: discrete segments (▆, lower
+ * three-quarters block) with a visible gap at the top of each lit
+ * cell, colors snapping hard at zone boundaries instead of blending.
  */
 export function VerticalGauge({ ratio, segmentCount = DEFAULT_SEGMENT_COUNT, cellWidth = 4, invert = false }) {
-  const rows = verticalSegments(ratio ?? 0, segmentCount);
-  const rowPairs = Math.ceil(segmentCount / 2);
-  const glyph = "\u2580".repeat(cellWidth);
+  const rows = verticalSegments(ratio ?? 0, segmentCount); // index 0 = topmost
+  const glyph = "\u2586".repeat(cellWidth); // ▆
+  const emptyGlyph = "\u2591".repeat(cellWidth); // ░
 
-  const colorFor = (idx, lit) => {
-    if (!lit) return theme.textDim;
-    let t = segmentCount === 1 ? 0 : idx / (segmentCount - 1);
-    if (invert) t = 1 - t;
-    return gradientColor(t);
-  };
-
-  const elements = [];
-  for (let r = 0; r < rowPairs; r++) {
-    const topIdx = r * 2;
-    const bottomIdx = Math.min(r * 2 + 1, segmentCount - 1);
-    const topColor = colorFor(topIdx, rows[topIdx]);
-    const bottomColor = colorFor(bottomIdx, rows[bottomIdx]);
-
-    elements.push(
-      h(Text, { key: r, color: topColor, backgroundColor: bottomColor }, glyph)
-    );
-  }
-
-  return h(Box, { flexDirection: "column" }, ...elements);
+  return h(
+    Box,
+    { flexDirection: "column" },
+    ...rows.map((lit, i) => {
+      let t = segmentCount === 1 ? 0 : i / (segmentCount - 1); // 0 = top, 1 = bottom
+      if (invert) t = 1 - t;
+      return h(Text, { key: i, color: lit ? zoneColor(t) : theme.textDim }, lit ? glyph : emptyGlyph);
+    })
+  );
 }
