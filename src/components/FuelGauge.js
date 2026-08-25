@@ -38,7 +38,7 @@ const TRACK_HEIGHT = GAUGE_ROWS + 2;
  * + ODO line                   (1)
  * + TitledBox's own bottom border (1)
  */
-export const FUEL_PANEL_ROWS = 1 + TRACK_HEIGHT + 1 + 1 + 1;
+export const FUEL_PANEL_ROWS = 1 + TRACK_HEIGHT + 1 + 1 + 1 + 1; // + 1 new row for the LEVEL % readout
 
 export function FuelGauge({ value, charging, battTimeRemainingMinutes, uptimeSeconds, odoDays, width = 20 }) {
   const hasBattery = value !== null && value !== undefined;
@@ -70,7 +70,9 @@ export function FuelGauge({ value, charging, battTimeRemainingMinutes, uptimeSec
       )
     ),
 
-    h(Text, { color: theme.textDim }, tripReadout({
+    h(Text, { bold: true, color: theme.textPrimary }, hasBattery ? `${Math.round(ratio * 100)}%` : "N/A"),
+
+    h(Text, { color: theme.textDim }, tripReadout({      
       isCharging: charging,
       hasBattery,
       timeRemainingMinutes: battTimeRemainingMinutes,

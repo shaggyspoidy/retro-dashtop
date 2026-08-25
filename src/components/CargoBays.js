@@ -2,10 +2,11 @@ import { Box, Text } from "ink";
 import { h } from "../utils/h.js";
 import { theme } from "../utils/theme.js";
 import { smoothBar } from "../utils/gauge.js";
+import { TitledBox } from "./TitledBox.js";
 
-const LABEL_WIDTH = 10; // "Used: 100%" / "Free: 100%"
-const VALUE_WIDTH = 10; // "999.9 GiB"
-const FREE_COLOR = theme.panelBorder; // same green family, muted — distinct from Used's bright green
+const LABEL_WIDTH = 10;
+const VALUE_WIDTH = 10;
+const FREE_COLOR = theme.panelBorder;
 
 function fmtGiB(n) {
   return `${n.toFixed(1)} GiB`;
@@ -22,17 +23,13 @@ function statRow({ key, label, ratio, valueLabel, color, barWidth }) {
   );
 }
 
-// Each partition renders as a distinct "block": name+size header,
-// then Used and Free as two separate bars — both in the green
-// family, no load-based amber/red here.
 export function CargoBays({ disks, width, height }) {
   const barWidth = Math.max(6, width - LABEL_WIDTH - VALUE_WIDTH - 5);
   const rows = disks || [];
 
   return h(
-    Box,
-    { width, height, borderStyle: "round", borderColor: theme.panelBorder, paddingX: 1, flexDirection: "column" },
-    h(Text, { bold: true, color: theme.green }, "CARGO BAYS"),
+    TitledBox,
+    { title: "CARGO BAYS", width, height },
     ...(rows.length === 0
       ? [h(Text, { color: theme.textDim }, "no volumes found")]
       : rows.flatMap((d, i) =>

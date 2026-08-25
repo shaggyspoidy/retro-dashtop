@@ -1,5 +1,6 @@
 // VFD phosphor palette per SRS 5.2: bright green, warning yellow,
 // red, amber/orange only. No cool colors — cyan is gone entirely.
+
 export const theme = {
   green: "#00FF66",
   yellow: "#FFD400",
@@ -8,4 +9,5 @@ export const theme = {
   textPrimary: "#CFFFE0",
   textDim: "#3A6B4A",
   panelBorder: "#2A6E45", // Section 2 panels only — never Section 1
+  background: "#000000", // explicit fill for panel interiors — Ink won't paint unpainted cells, so anything layered over the background Grid needs this
 };

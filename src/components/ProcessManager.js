@@ -4,6 +4,7 @@ import { h } from "../utils/h.js";
 import { theme } from "../utils/theme.js";
 import { ProcessTable } from "./ProcessTable.js";
 import { COLUMNS, sortProcesses } from "../utils/processTable.js";
+import { TitledBox } from "./TitledBox.js";
 
 export function ProcessManager({ processes, width, height }) {
   const [sortKey, setSortKey] = useState("pcpu");
@@ -34,8 +35,9 @@ export function ProcessManager({ processes, width, height }) {
     }
   }, [sorted, selectedPid]);
 
-  // title(1) + column header(1) + footer(1) + border top/bottom(2)
-  const visibleRows = Math.max(1, height - 5);
+  // column header(1) + footer(1) + TitledBox chrome(2: title/border-top
+  // line + bottom border) — no separate title row to account for anymore
+  const visibleRows = Math.max(1, height - 4);
 
   useEffect(() => {
     if (selectedIndex < 0) return;
@@ -118,9 +120,8 @@ export function ProcessManager({ processes, width, height }) {
   const hotkeys = COLUMNS.filter((c) => c.hotkey).map((c) => c.hotkey).join("/");
 
   return h(
-    Box,
-    { width, height, borderStyle: "round", borderColor: theme.panelBorder, paddingX: 1, flexDirection: "column" },
-    h(Text, { bold: true, color: theme.green }, "PROCESSES"),
+    TitledBox,
+    { title: "PROCESSES", width, height },
     h(ProcessTable, {
       processes,
       sortKey,

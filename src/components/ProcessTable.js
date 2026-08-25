@@ -2,21 +2,12 @@ import { Box, Text } from "ink";
 import { h } from "../utils/h.js";
 import { theme } from "../utils/theme.js";
 import { COLUMNS, sortProcesses, truncate, padCell } from "../utils/processTable.js";
-import { colorForLoad } from "../utils/gauge.js";
 
-function columnColor(key, proc) {
-  switch (key) {
-    case "pid":
-      return theme.textDim;
-    case "user":
-      return theme.green;
-    case "pmem":
-      return colorForLoad(Math.min(1, (proc.pmem || 0) / 100));
-    case "pcpu":
-      return colorForLoad(Math.min(1, (proc.pcpu || 0) / 100));
-    default:
-      return theme.textPrimary;
-  }
+// btop-style restraint: color is reserved for the header row and the
+// selected-row highlight — every normal data cell reads in the same
+// muted foreground so nothing competes for attention.
+function columnColor(key) {
+  return key === "pid" ? theme.textDim : theme.textPrimary;
 }
 
 // Widths computed once, shared by header + every data row. Gaps
@@ -47,7 +38,7 @@ function dataRow(proc, isSelected, widths, key) {
   COLUMNS.forEach((c, i) => {
     if (i > 0) elements.push(h(Box, { key: `${key}-gap-${i}`, width: 1, backgroundColor: bg }));
     const raw = c.key === "command" ? truncate(proc[c.key], widths[i]) : proc[c.key];
-    const fg = isSelected ? selectedFg : columnColor(c.key, proc);
+    const fg = isSelected ? selectedFg : columnColor(c.key);
     elements.push(h(Text, { key: `${key}-cell-${i}`, backgroundColor: bg, color: fg }, padCell(raw, widths[i], c.align)));
   });
   return h(Box, { key, flexDirection: "row" }, ...elements);

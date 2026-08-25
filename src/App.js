@@ -12,6 +12,7 @@ import { theme } from "./utils/theme.js";
 import { Dashboard } from "./components/Dashboard.js";
 import { Mechanics } from "./components/Mechanics.js";
 import { ProcessManager } from "./components/ProcessManager.js";
+import { Grid } from "./components/Grid.js";
 import { useSystemStats } from "./hooks/useSystemStats.js";
 import { FUEL_PANEL_ROWS } from "./components/FuelGauge.js";
 
@@ -42,23 +43,26 @@ export function App() {
 
   return h(
     Box,
-    { flexDirection: "column", width: termWidth, height: termHeight },
-    
+    { flexDirection: "column", width: termWidth, height: termHeight, backgroundColor: theme.background },
+
+    // --- BACKGROUND TEXTURE ---
+    h(Grid, { width: termWidth, height: termHeight }),
+
     // --- TOP HEADER ---
-    h(
+        h(
       Box,
-      { height: headerRows, justifyContent: "flex-end" },
-      h(Text, { color: theme.textDim }, "q to quit")
+      { height: headerRows, justifyContent: "flex-end", backgroundColor: theme.background },
+      h(Text, { color: theme.textDim, backgroundColor: theme.background }, "q to quit")
     ),
-    
+
     // --- 30% DASHBOARD ---
-    h(Dashboard, {stats, width: termWidth, height: dashboardHeight }),
-    
+    h(Dashboard, { stats, width: termWidth, height: dashboardHeight }),
+
     // --- 70% MECHANICS (left) + PROCESS MANAGER (right) ---
     h(
       Box,
       { flexDirection: "row", height: processHeight },
-      h(Mechanics, {stats, width: mechanicsWidth, height: processHeight }),
+      h(Mechanics, { stats, width: mechanicsWidth, height: processHeight }),
       h(Box, { width: 1 }),
       h(ProcessManager, { processes: stats.processes, width: processWidth, height: processHeight })
     )
